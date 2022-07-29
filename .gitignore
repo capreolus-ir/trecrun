@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# editor tmp files
+*~
+
+# mypy
+.mypy_cache/
+
+# notebooks
+.ipynb_checkpoints/
+.idea/
+
+.DS_Store
+.pytest_cache/
+
+# ide files
+/.vscode
+/*.code-workspace
