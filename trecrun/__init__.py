@@ -1,6 +1,7 @@
 import operator
 from copy import deepcopy
 
+import ir_measures
 import sklearn.preprocessing
 import smart_open
 
@@ -10,8 +11,9 @@ class TrecRun:
 
     def __init__(self, results):
         if isinstance(results, dict):
+            # use comprehension to ensure copy
             self.results = {str(qid): {docid: score for docid, score in results[qid].items()} for qid in results}
-        elif isinstance(results, str):
+        else:
             self.results = {}
             with smart_open.open(results) as f:
                 for line in f:
@@ -27,14 +29,12 @@ class TrecRun:
 
             if not self.results:
                 raise IOError("provided path contained no results: %s" % results)
-        else:
-            raise ValueError("results must be a dict or a string containing a path")
 
-    def _arithmetic_op(self, other, operator):
+    def _arithmetic_op(self, other, op):
         if isinstance(other, TrecRun):
             try:
                 results = {
-                    qid: {docid: operator(score, other.results[qid][docid]) for docid, score in self.results[qid].items()}
+                    qid: {docid: op(score, other.results[qid][docid]) for docid, score in self.results[qid].items()}
                     for qid in self.results
                 }
             except KeyError:
@@ -43,9 +43,7 @@ class TrecRun:
                 )
         else:
             scalar = other
-            results = {
-                qid: {docid: operator(score, scalar) for docid, score in self.results[qid].items()} for qid in self.results
-            }
+            results = {qid: {docid: op(score, scalar) for docid, score in self.results[qid].items()} for qid in self.results}
 
         return TrecRun(results)
 
@@ -130,15 +128,22 @@ class TrecRun:
         return TrecRun(results)
 
     def normalize(self, method="rr"):
-        normalization_funcs = {"minmax": sklearn.preprocessing.minmax_scale, "standard": sklearn.preprocessing.scale}
+        normalization_funcs = {
+            "minmax": sklearn.preprocessing.minmax_scale,
+            "standard": sklearn.preprocessing.scale,
+        }
 
         if method == "rr":
             sorted_results = {
-                qid: sorted(((docid, score) for docid, score in self.results[qid].items()), key=lambda x: x[1], reverse=True)
+                qid: sorted(
+                    ((docid, score) for docid, score in self.results[qid].items()),
+                    key=lambda x: x[1],
+                    reverse=True,
+                )
                 for qid in self.results
             }
             results = {
-                qid: {docid: 1 / (idx + 1) for idx, (docid, old_score) in enumerate(sorted_results[qid])}
+                qid: {docid: 1 / (60 + idx + 1) for idx, (docid, old_score) in enumerate(sorted_results[qid])}
                 for qid in sorted_results
             }
         elif method in normalization_funcs:
@@ -190,7 +195,7 @@ class TrecRun:
             return self.results == other.results
         return NotImplemented
 
-    def write_trec_run(self, outfn, tag="capreolus"):
+    def write_trec_run(self, outfn, tag="trecrun"):
         preds = self.results
         count = 0
         with open(outfn, "wt") as outf:
@@ -208,35 +213,13 @@ class TrecRun:
         }
         return TrecRun(results)
 
-    def evaluate(self, qrels, metrics, relevance_level=1, average_only=True):
-        return _eval_runs(self.results, qrels, metrics, relevance_level, average_only)
+    def evaluate(self, qrels, metrics, return_average=True):
+        if return_average:
+            d = ir_measures.calc_aggregate(metrics, qrels, self.results)
+        else:
+            d = {}
+            for val in ir_measures.iter_calc(metrics, qrels, self.results):
+                d.setdefault(val.measure, []).append(val)
 
-
-def _eval_runs(runs, qrels, metrics, relevance_level, average_only=True):
-    import pytrec_eval
-    import numpy as np
-    from capreolus import evaluator
-
-    assert isinstance(metrics, list)
-    calc_judged = [int(metric.split("_")[1]) for metric in metrics if metric.startswith("judged_")]
-    for n in calc_judged:
-        metrics.remove(f"judged_{n}")
-
-    dev_qrels = {qid: labels for qid, labels in qrels.items()}  # if qid in runs}  # if qid in dev_qids}
-    evaluator = pytrec_eval.RelevanceEvaluator(dev_qrels, metrics, relevance_level=int(relevance_level))
-    per_query_metrics = evaluator.evaluate(runs)
-
-    # for n in calc_judged:
-    #     per_query_judged = judged(qrels, runs, n)
-    #     for qid in per_query_metrics:
-    #         per_query_metrics[qid][f"judged_{n}"] = per_query_judged[qid]
-
-    metric_names = {x for query_metrics_dict in per_query_metrics.values() for x in query_metrics_dict}
-    avg_metrics = {
-        metric_name: np.mean([per_query_metrics[qid][metric_name] for qid in per_query_metrics]) for metric_name in metric_names
-    }
-
-    if average_only:
-        return avg_metrics
-
-    return avg_metrics, per_query_metrics
+        # convert from objects to metric names
+        return {str(metric): v for metric, v in d.items()}

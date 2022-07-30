@@ -1,0 +1,3 @@
+scikit-learn
+smart_open
+ir-measures
