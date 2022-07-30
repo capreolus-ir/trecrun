@@ -1,7 +1,8 @@
+import os
 import setuptools
+
 from setuptools.command.develop import develop
 from setuptools.command.install import install
-import os
 
 
 with open("README.md", "r") as fh:
@@ -23,7 +24,7 @@ def get_version(rel_path):
     raise RuntimeError("Unable to find version string.")
 
 
-#TODO change trecrun fields below?
+# TODO change trecrun fields below?
 setuptools.setup(
     name="trecrun",
     version=get_version("trecrun/__init__.py"),
