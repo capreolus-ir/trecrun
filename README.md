@@ -1,3 +1,12 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Worfklow](https://github.com/capreolus-ir/trecrun/workflows/pytest/badge.svg)](https://github.com/capreolus-ir/trecrun/actions)
+[![PyPI version fury.io](https://badge.fury.io/py/trecrun.svg)](https://pypi.python.org/pypi/trecrun/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
+
+# TrecRun
+
+`TrecRun` is a library for loading and working with TREC run files, with an API heavily inspired by PyTerrier's pipeline operators.
+
 | API | Operator | Description |
 | --- | --- | --- |
 | `TrecRun(results)` | | Create a `TrecRun` object from a dictionary of results or a path to a run file in TREC format. |
