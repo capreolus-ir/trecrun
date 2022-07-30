@@ -19,8 +19,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: black
       uses: psf/black@stable
-      with:
-        args: ". --check --config pyproject.toml"
+#      with:
+#        args: ". --check --config pyproject.toml"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
