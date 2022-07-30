@@ -5,6 +5,8 @@ import ir_measures
 import sklearn.preprocessing
 import smart_open
 
+__version__ = "0.1.0"
+
 DEFAULT_METRICS = [
     "P@1",
     "P@5",
