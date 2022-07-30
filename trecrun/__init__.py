@@ -5,6 +5,24 @@ import ir_measures
 import sklearn.preprocessing
 import smart_open
 
+DEFAULT_METRICS = [
+    "P@1",
+    "P@5",
+    "P@10",
+    "P@20",
+    "Judged@10",
+    "Judged@20",
+    "Judged@50",
+    "AP@100",
+    "AP@1000",
+    "nDCG@5",
+    "nDCG@10",
+    "nDCG@20",
+    "Recall@100",
+    "Recall@1000",
+    "RR",
+]
+
 
 class TrecRun:
     # hashlib.md5(json.dumps(mrl.results, sort_keys=True).encode()).hexdigest()
@@ -213,13 +231,20 @@ class TrecRun:
         }
         return TrecRun(results)
 
-    def evaluate(self, qrels, metrics, return_average=True):
+    def evaluate(
+        self,
+        qrels,
+        metrics=DEFAULT_METRICS,
+        return_average=True,
+    ):
+        metrics = [ir_measures.parse_measure(metric) if isinstance(metric, str) else metric for metric in metrics]
         if return_average:
             d = ir_measures.calc_aggregate(metrics, qrels, self.results)
+            # convert from objects to metric names
+            d = {str(metric): v for metric, v in d.items()}
         else:
             d = {}
             for val in ir_measures.iter_calc(metrics, qrels, self.results):
-                d.setdefault(val.measure, []).append(val)
+                d.setdefault(val.query_id, {})[str(val.measure)] = val.value
 
-        # convert from objects to metric names
-        return {str(metric): v for metric, v in d.items()}
+        return d
