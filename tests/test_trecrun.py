@@ -62,3 +62,21 @@ def test_evaluate(simple_run):
     assert metrics2["P@5"] == 0.2
     assert metrics2["Judged@10"] == 0.2
     assert metrics2["RR"] == 0.5
+
+
+def test_cache_hash(simple_run):
+    runfn, rundict = simple_run
+    copy1 = TrecRun(runfn)
+    copy2 = TrecRun(rundict)
+    assert copy1.cache_hash() == copy2.cache_hash()
+    # test that query and doc IDs are normalized to strings
+    assert TrecRun({1: {123: 10, 124: 9}, 2: {125: 9}}).cache_hash() == copy1.cache_hash()
+
+    assert TrecRun({"1": {"123": 9, "124": 10}, "2": {"125": 9}}).cache_hash() != copy1.cache_hash()
+    assert TrecRun({"1": {"123": 10, "124": 9}, "2": {"125": 0.9}}).cache_hash() != copy1.cache_hash()
+    assert TrecRun({"1": {"123": 10, "124": 9}, "2": {"125": 9}, "2": {"0": 0}}) != copy1.cache_hash()
+
+    assert (copy1 + 1).cache_hash() != copy2.cache_hash()
+    assert copy1.topk(1).cache_hash() != copy2.cache_hash()
+    assert copy1.topk(2).cache_hash() == copy2.cache_hash()
+    assert copy1.normalize().cache_hash() != copy2.cache_hash()

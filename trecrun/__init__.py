@@ -1,3 +1,5 @@
+import hashlib
+import json
 import operator
 from copy import deepcopy
 
@@ -27,12 +29,12 @@ DEFAULT_METRICS = [
 
 
 class TrecRun:
-    # hashlib.md5(json.dumps(mrl.results, sort_keys=True).encode()).hexdigest()
-
     def __init__(self, results):
+        self._cache_hash = None
+
         if isinstance(results, dict):
             # use comprehension to ensure copy
-            self.results = {str(qid): {docid: score for docid, score in results[qid].items()} for qid in results}
+            self.results = {str(qid): {str(docid): float(score) for docid, score in results[qid].items()} for qid in results}
         else:
             self.results = {}
             with smart_open.open(results) as f:
@@ -250,3 +252,10 @@ class TrecRun:
                 d.setdefault(val.query_id, {})[str(val.measure)] = val.value
 
         return d
+
+    def cache_hash(self):
+        if not self._cache_hash:
+            self._cache_hash_json = json.dumps(self.results, sort_keys=True)
+            self._cache_hash = hashlib.sha256(self._cache_hash_json.encode()).hexdigest()
+
+        return self._cache_hash
