@@ -3,14 +3,14 @@
 [![PyPI version fury.io](https://badge.fury.io/py/trecrun.svg)](https://pypi.python.org/pypi/trecrun/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 
-# TrecRun
+# TRECRun
 
-`TrecRun` is a library for working with TREC run files, with an API heavily inspired by PyTerrier's pipeline operators.
+`TRECRun` is a library for working with TREC run files, with an API heavily inspired by PyTerrier's pipeline operators.
 
 | API | Operator | Description |
 | --- | --- | --- |
-| `TrecRun(results)` | | Create a `TrecRun` object from a dictionary of results or a path to a run file in TREC format. |
-| `add(self, other)`, `subtract`, `multiply`, `divide` | `+`, `-`, `*`, `/` | Perform the given operation between self's document scores and `other`, which can be a `TrecRun` or a scalar. |
+| `TRECRun(results)` | | Create a `TRECRun` object from a dictionary of results or a path to a run file in TREC format. |
+| `add(self, other)`, `subtract`, `multiply`, `divide` | `+`, `-`, `*`, `/` | Perform the given operation between self's document scores and `other`, which can be a `TRECRun` or a scalar. |
 | `topk(self, k)` | `%` | Retain only the top-k documents for each qid after sorting by score. |
 | `intersect(self, other)` | `&` | Retain only the queries and documents that appear in both `self` and `other`. |
 | `concat(self, other)` | | Concat the documents in `other` and `self`, with those in `other` appearing at the end. Their scores will be modified to accomplish this.  |
