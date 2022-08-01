@@ -5,7 +5,7 @@
 
 # TrecRun
 
-`TrecRun` is a library for loading and working with TREC run files, with an API heavily inspired by PyTerrier's pipeline operators.
+`TrecRun` is a library for working with TREC run files, with an API heavily inspired by PyTerrier's pipeline operators.
 
 | API | Operator | Description |
 | --- | --- | --- |

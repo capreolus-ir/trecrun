@@ -24,13 +24,12 @@ def get_version(rel_path):
     raise RuntimeError("Unable to find version string.")
 
 
-# TODO change trecrun fields below?
 setuptools.setup(
     name="trecrun",
     version=get_version("trecrun/__init__.py"),
     author="Andrew Yates",
     author_email="one-name-then-the-next@gmail.com",
-    description="TRECRun",
+    description="Library for working with TREC run files",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/capreolus-ir/trecrun",

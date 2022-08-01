@@ -28,7 +28,7 @@ DEFAULT_METRICS = [
 ]
 
 
-class TrecRun:
+class TRECRun:
     def __init__(self, results):
         self._cache_hash = None
 
@@ -53,7 +53,7 @@ class TrecRun:
                 raise IOError("provided path contained no results: %s" % results)
 
     def _arithmetic_op(self, other, op):
-        if isinstance(other, TrecRun):
+        if isinstance(other, TRECRun):
             try:
                 results = {
                     qid: {docid: op(score, other.results[qid][docid]) for docid, score in self.results[qid].items()}
@@ -67,7 +67,7 @@ class TrecRun:
             scalar = other
             results = {qid: {docid: op(score, scalar) for docid, score in self.results[qid].items()} for qid in self.results}
 
-        return TrecRun(results)
+        return TRECRun(results)
 
     def add(self, other):
         return self._arithmetic_op(other, operator.add)
@@ -89,23 +89,23 @@ class TrecRun:
             else:
                 results[qid] = docscores.copy()
 
-        return TrecRun(results)
+        return TRECRun(results)
 
     def intersect(self, other):
-        if not isinstance(other, TrecRun):
+        if not isinstance(other, TRECRun):
             raise NotImplementedError()
 
         shared_results = {
             qid: {docid: score for docid, score in self.results[qid].items() if docid in other.results[qid]}
             for qid in self.results.keys() & other.results.keys()
         }
-        return TrecRun(shared_results)
+        return TRECRun(shared_results)
 
     def qids(self):
         return set(self.results.keys())
 
     def union_qids(self, other, shared_qids="disallow"):
-        if not isinstance(other, TrecRun):
+        if not isinstance(other, TRECRun):
             raise NotImplementedError()
 
         if shared_qids == "disallow":
@@ -117,7 +117,7 @@ class TrecRun:
         else:
             raise NotImplementedError("only disallow is implemented")
 
-        return TrecRun(new_results)
+        return TRECRun(new_results)
 
     def concat(self, other):
         results = {qid: {docid: score for docid, score in self.results[qid].items()} for qid in self.results}
@@ -140,14 +140,14 @@ class TrecRun:
             for docid, score in new_results[qid].items():
                 results[qid][docid] = a * score + b
 
-        return TrecRun(results)
+        return TRECRun(results)
 
     def difference(self, other):
         results = {
             qid: {docid: score for docid, score in self.results[qid].items() if docid not in other.results.get(qid, {})}
             for qid in self.results
         }
-        return TrecRun(results)
+        return TRECRun(results)
 
     def normalize(self, method="rr"):
         normalization_funcs = {
@@ -176,7 +176,7 @@ class TrecRun:
         else:
             raise ValueError(f"unknown method: {method}")
 
-        return TrecRun(results)
+        return TRECRun(results)
 
     def __getitem__(self, k):
         # TODO is it ok to NOT return a copy here?
@@ -213,7 +213,7 @@ class TrecRun:
         return sum(len(x) for x in self.results.values())
 
     def __eq__(self, other):
-        if isinstance(other, TrecRun):
+        if isinstance(other, TRECRun):
             return self.results == other.results
         return NotImplemented
 
@@ -233,7 +233,7 @@ class TrecRun:
         results = {
             qid: {docid: score for docid, score in self.results[qid].items() if docid in qrels[qid]} for qid in self.results
         }
-        return TrecRun(results)
+        return TRECRun(results)
 
     def evaluate(
         self,

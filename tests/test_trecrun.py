@@ -1,6 +1,6 @@
 import pytest
 
-from trecrun import TrecRun
+from trecrun import TRECRun
 
 
 @pytest.fixture
@@ -20,11 +20,11 @@ def simple_run(tmp_path):
 def test_basic(simple_run):
     runfn, rundict = simple_run
 
-    run = TrecRun(runfn)
+    run = TRECRun(runfn)
     assert run["1"] == rundict["1"]
     assert run["2"] == rundict["2"]
 
-    run2 = TrecRun(rundict)
+    run2 = TRECRun(rundict)
     assert run2.results == rundict
 
     newrundict = {"1": {"123": 10 * 3 / 4 + 5 - 6, "124": 9 * 3 / 4 + 5 - 6}, "2": {"125": 9 * 3 / 4 + 5 - 6}}
@@ -40,13 +40,13 @@ def test_basic(simple_run):
     assert len(shortrun1["1"]) == 1
     assert len(shortrun1["2"]) == 1
 
-    assert shortrun1.intersect(TrecRun({"1": shortrun2["1"]})).results == {"1": {"123": 10}}
+    assert shortrun1.intersect(TRECRun({"1": shortrun2["1"]})).results == {"1": {"123": 10}}
 
 
 def test_evaluate(simple_run):
     runfn, rundict = simple_run
     qrels = {"1": {"123": 1, "124": 0}}
-    run = TrecRun(rundict)
+    run = TRECRun(rundict)
 
     metrics = run.evaluate(qrels)
     assert metrics["P@1"] == 1.0
@@ -66,15 +66,15 @@ def test_evaluate(simple_run):
 
 def test_cache_hash(simple_run):
     runfn, rundict = simple_run
-    copy1 = TrecRun(runfn)
-    copy2 = TrecRun(rundict)
+    copy1 = TRECRun(runfn)
+    copy2 = TRECRun(rundict)
     assert copy1.cache_hash() == copy2.cache_hash()
     # test that query and doc IDs are normalized to strings
-    assert TrecRun({1: {123: 10, 124: 9}, 2: {125: 9}}).cache_hash() == copy1.cache_hash()
+    assert TRECRun({1: {123: 10, 124: 9}, 2: {125: 9}}).cache_hash() == copy1.cache_hash()
 
-    assert TrecRun({"1": {"123": 9, "124": 10}, "2": {"125": 9}}).cache_hash() != copy1.cache_hash()
-    assert TrecRun({"1": {"123": 10, "124": 9}, "2": {"125": 0.9}}).cache_hash() != copy1.cache_hash()
-    assert TrecRun({"1": {"123": 10, "124": 9}, "2": {"125": 9}, "2": {"0": 0}}) != copy1.cache_hash()
+    assert TRECRun({"1": {"123": 9, "124": 10}, "2": {"125": 9}}).cache_hash() != copy1.cache_hash()
+    assert TRECRun({"1": {"123": 10, "124": 9}, "2": {"125": 0.9}}).cache_hash() != copy1.cache_hash()
+    assert TRECRun({"1": {"123": 10, "124": 9}, "2": {"125": 9}, "2": {"0": 0}}) != copy1.cache_hash()
 
     assert (copy1 + 1).cache_hash() != copy2.cache_hash()
     assert copy1.topk(1).cache_hash() != copy2.cache_hash()
