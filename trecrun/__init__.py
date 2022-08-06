@@ -34,7 +34,11 @@ class TRECRun:
 
         if isinstance(results, dict):
             # use comprehension to ensure copy
-            self.results = {str(qid): {str(docid): float(score) for docid, score in results[qid].items()} for qid in results}
+            self.results = {
+                str(qid): {str(docid): float(score) for docid, score in docscores.items()}
+                for qid, docscores in results.items()
+                if len(docscores) > 0
+            }
         else:
             self.results = {}
             with smart_open.open(results) as f:
@@ -104,22 +108,23 @@ class TRECRun:
     def qids(self):
         return set(self.results.keys())
 
-    def union_qids(self, other, shared_qids="disallow"):
-        if not isinstance(other, TRECRun):
-            raise NotImplementedError()
+    # def union_qids(self, other, shared_qids="disallow"):
+    #     if not isinstance(other, TRECRun):
+    #         raise NotImplementedError()
 
-        if shared_qids == "disallow":
-            if self.qids().intersection(other.qids()):
-                raise ValueError("inputs share some qids but shared_qids='disallow'")
+    #     if shared_qids == "disallow":
+    #         if self.qids().intersection(other.qids()):
+    #             raise ValueError("inputs share some qids but shared_qids='disallow'")
 
-            new_results = deepcopy(self.results)
-            new_results.update(deepcopy(other.results))
-        else:
-            raise NotImplementedError("only disallow is implemented")
+    #         new_results = deepcopy(self.results)
+    #         new_results.update(deepcopy(other.results))
+    #     else:
+    #         raise NotImplementedError("only disallow is implemented")
 
-        return TRECRun(new_results)
+    #     return TRECRun(new_results)
 
     def concat(self, other):
+        # other = other.normalize(method="minmax")
         results = {qid: {docid: score for docid, score in self.results[qid].items()} for qid in self.results}
         new_results = {
             qid: {docid: score for docid, score in other.results[qid].items() if docid not in self.results[qid]}
@@ -128,17 +133,9 @@ class TRECRun:
         }
 
         for qid in new_results:
-            if len(new_results[qid]) == 0:
-                continue
-
-            mn, mx = min(other[qid]), max(other[qid])
-            newmx = min(results[qid]) - 1e-3
-            newmn = newmx - (mx - mn)
-            a = (newmx - newmn) / (mx - mn)
-            b = mx - a * mx
-
+            mn, mx = min(other[qid].values()), max(other[qid].values())
             for docid, score in new_results[qid].items():
-                results[qid][docid] = a * score + b
+                results[qid][docid] = score - mx + mn - 1e-3
 
         return TRECRun(results)
 
@@ -231,7 +228,8 @@ class TRECRun:
 
     def remove_unjudged_documents(self, qrels):
         results = {
-            qid: {docid: score for docid, score in self.results[qid].items() if docid in qrels[qid]} for qid in self.results
+            qid: {docid: score for docid, score in docscores.items() if docid in qrels.get(qid, [])}
+            for qid, docscores in self.results.items()
         }
         return TRECRun(results)
 
