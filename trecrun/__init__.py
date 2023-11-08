@@ -4,6 +4,7 @@ import operator
 from copy import deepcopy
 
 import ir_measures
+import numpy as np
 import sklearn.preprocessing
 import smart_open
 
@@ -237,17 +238,15 @@ class TRECRun:
         self,
         qrels,
         metrics=DEFAULT_METRICS,
-        return_average=True,
     ):
         metrics = [ir_measures.parse_measure(metric) if isinstance(metric, str) else metric for metric in metrics]
-        if return_average:
-            d = ir_measures.calc_aggregate(metrics, qrels, self.results)
-            # convert from objects to metric names
-            d = {str(metric): v for metric, v in d.items()}
-        else:
-            d = {}
-            for val in ir_measures.iter_calc(metrics, qrels, self.results):
-                d.setdefault(val.query_id, {})[str(val.measure)] = val.value
+
+        d = {}
+        for val in ir_measures.iter_calc(metrics, qrels, self.results):
+            d.setdefault(str(val.measure), {})[val.query_id] = val.value
+
+        for metric in d:
+            d[metric]["mean"] = np.mean(list(d[metric].values()))
 
         return d
 
