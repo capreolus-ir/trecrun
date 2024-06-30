@@ -1,5 +1,18 @@
+# https://packaging.python.org/en/latest/discussions/setup-py-deprecated/
+# use setuptools with 'build' package rather than building with setup.py
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trecrun"
+dynamic = ["version"]
+
 [tool.black]
 line-length = 130
+
+[tool.isort]
+profile = "black"
 
 [tool.pytest.ini_options]
 pythonpath = [
