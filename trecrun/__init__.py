@@ -1,7 +1,6 @@
 import hashlib
 import json
 import operator
-from copy import deepcopy
 
 import ir_measures
 import numpy as np
