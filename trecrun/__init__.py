@@ -218,7 +218,7 @@ class TRECRun:
             return self.results == other.results
         return NotImplemented
 
-    def write_trec_run(self, outfn, tag="trecrun"):
+    def write_trec_run(self, outfn, tag="run"):
         preds = self.results
         count = 0
         with open(outfn, "wt") as outf:
