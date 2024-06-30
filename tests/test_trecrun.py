@@ -136,19 +136,23 @@ def test_evaluate(run):
     qrels = {"1": {"123": 1, "124": 0}}
 
     metrics = run.evaluate(qrels)
-    assert metrics["P@1"] == 1.0
-    assert metrics["P@5"] == 0.2
-    assert metrics["Judged@10"] == 0.2
-    assert metrics["RR"] == 1.0
+    assert metrics["P@1"]["1"] == 1.0
+    assert metrics["P@5"]["1"] == 0.2
+    assert metrics["Judged@10"]["1"] == 1.0
+    assert metrics["RR"]["1"] == 1.0
 
-    qid_metrics = run.evaluate(qrels, return_average=False)
-    assert qid_metrics["1"] == metrics
+    assert metrics["P@1"]["1"] == metrics["P@1"]["mean"]
 
-    metrics2 = run.evaluate({"1": {"123": 0, "124": 1}})
-    assert metrics2["P@1"] == 0.0
-    assert metrics2["P@5"] == 0.2
-    assert metrics2["Judged@10"] == 0.2
-    assert metrics2["RR"] == 0.5
+    metrics2 = run.evaluate({"1": {"123": 0, "124": 1}, "2": {"125": 1}})
+    assert metrics2["P@1"]["1"] == 0.0
+    assert metrics2["P@5"]["1"] == 0.2
+    assert metrics2["Judged@10"]["1"] == 1.0
+    assert metrics2["RR"]["1"] == 0.5
+
+    assert metrics2["P@1"]["mean"] == 0.5
+    assert metrics2["P@5"]["mean"] == 0.2
+    assert metrics2["Judged@10"]["mean"] == 1.0
+    assert metrics2["RR"]["mean"] == 0.75
 
 
 def test_cache_hash(runfn, rundict):
