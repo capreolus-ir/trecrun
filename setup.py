@@ -8,6 +8,7 @@ from setuptools.command.install import install
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
 # from https://packaging.python.org/guides/single-sourcing-package-version/
 def read(rel_path):
     here = os.path.abspath(os.path.dirname(__file__))
@@ -34,8 +35,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/capreolus-ir/trecrun",
     packages=setuptools.find_packages(),
-    install_requires=[req.strip() for req in open("requirements.txt", "rt")],
+    install_requires=["ir-measures", "numpy", "scikit-learn", "smart_open"],
     classifiers=["Programming Language :: Python :: 3", "Operating System :: OS Independent"],
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     include_package_data=True,
 )
