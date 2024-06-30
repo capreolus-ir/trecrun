@@ -176,6 +176,9 @@ class TRECRun:
 
         return TRECRun(results)
 
+    def __contains__(self, k):
+        return k in self.results
+
     def __getitem__(self, k):
         # TODO is it ok to NOT return a copy here?
         return self.results[k]
