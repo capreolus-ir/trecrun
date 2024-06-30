@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trecrun"
-dynamic = ["version"]
+dynamic = ["authors", "classifiers", "dependencies", "description", "readme", "requires-python", "version"]
 
 [tool.black]
 line-length = 130
