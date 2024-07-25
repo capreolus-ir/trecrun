@@ -40,6 +40,15 @@ class TRECRun:
                 if len(docscores) > 0
             }
         else:
+            # is the path a JSON object?
+            try:
+                with open(results, "rt", encoding="utf-8") as f:
+                    self.results = json.load(f)
+                    return
+            except json.JSONDecodeError:
+                pass
+
+            # is the path a TREC run file?
             self.results = {}
             with smart_open.open(results) as f:
                 for line in f:
@@ -228,6 +237,12 @@ class TRECRun:
                     print(f"{qid} Q0 {docid} {rank} {score} {tag}", file=outf)
                     rank += 1
                     count += 1
+
+    def write_json_run(self, outfn):
+        """Save the run in json format"""
+
+        with open(outfn, "wt", encoding="utf-8") as outf:
+            json.dump(self.results, outf)
 
     def remove_unjudged_documents(self, qrels):
         results = {

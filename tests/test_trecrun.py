@@ -170,3 +170,13 @@ def test_cache_hash(runfn, rundict):
     assert copy1.topk(1).cache_hash() != copy2.cache_hash()
     assert copy1.topk(2).cache_hash() == copy2.cache_hash()
     assert copy1.normalize().cache_hash() != copy2.cache_hash()
+
+
+def test_json(tmp_path):
+    run = TRECRun({"q1": {"d1": 1, "d2": 2}})
+
+    outfn = tmp_path / "out.json"
+    run.write_json_run(outfn)
+
+    r2 = TRECRun(outfn)
+    assert run.results == r2.results
