@@ -7,7 +7,7 @@ import numpy as np
 import sklearn.preprocessing
 import smart_open
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 DEFAULT_METRICS = [
     "P@1",
