@@ -95,6 +95,7 @@ class TRECRun:
         return self._arithmetic_op(other, operator.truediv)
 
     def topk(self, k):
+        """Return a new run containg the top-k results"""
         results = {}
         for qid, docscores in self.results.items():
             if len(docscores) > k:
@@ -105,6 +106,8 @@ class TRECRun:
         return TRECRun(results)
 
     def intersect(self, other):
+        """Return a new run containing only the query-document pairs contained in other"""
+
         if not isinstance(other, TRECRun):
             raise NotImplementedError()
 
@@ -156,6 +159,8 @@ class TRECRun:
         return TRECRun(results)
 
     def normalize(self, method="rr"):
+        """Normalize document scores"""
+
         normalization_funcs = {
             "minmax": sklearn.preprocessing.minmax_scale,
             "standard": sklearn.preprocessing.scale,
@@ -227,6 +232,8 @@ class TRECRun:
         return NotImplemented
 
     def write_trec_run(self, outfn, tag="run"):
+        """Save the run in TREC format"""
+
         preds = self.results
         count = 0
         with open(outfn, "wt") as outf:
@@ -245,6 +252,8 @@ class TRECRun:
             json.dump(self.results, outf)
 
     def remove_unjudged_documents(self, qrels):
+        """Return a new run with unjudged documents removed"""
+
         results = {
             qid: {docid: score for docid, score in docscores.items() if docid in qrels.get(qid, [])}
             for qid, docscores in self.results.items()
@@ -256,6 +265,8 @@ class TRECRun:
         qrels,
         metrics=DEFAULT_METRICS,
     ):
+        """Evaluate the run using the provided qrels"""
+
         metrics = [ir_measures.parse_measure(metric) if isinstance(metric, str) else metric for metric in metrics]
 
         d = {}

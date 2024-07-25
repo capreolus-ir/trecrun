@@ -43,7 +43,10 @@ def test_load(runfn, rundict):
 
 
 def test_arithmetic(run):
-    newrundict = {"1": {"123": 10 * 3 / 4 + 5 - 6, "124": 9 * 3 / 4 + 5 - 6}, "2": {"125": 9 * 3 / 4 + 5 - 6}}
+    newrundict = {
+        "1": {"123": 10 * 3 / 4 + 5 - 6, "124": 9 * 3 / 4 + 5 - 6},
+        "2": {"125": 9 * 3 / 4 + 5 - 6},
+    }
     assert (run * 3 / 4 + 5 - 6).results == newrundict
 
     assert (run * 2).results == (run + run).results

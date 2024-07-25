@@ -36,7 +36,10 @@ setuptools.setup(
     url="https://github.com/capreolus-ir/trecrun",
     packages=setuptools.find_packages(),
     install_requires=["ir-measures", "numpy", "scikit-learn", "smart_open"],
-    classifiers=["Programming Language :: Python :: 3", "Operating System :: OS Independent"],
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Operating System :: OS Independent",
+    ],
     python_requires=">=3.8",
     include_package_data=True,
 )
