@@ -279,8 +279,25 @@ class TRECRun:
         return d
 
     def cache_hash(self):
+        """Compute a hash of the run"""
+
         if not self._cache_hash:
             self._cache_hash_json = json.dumps(self.results, sort_keys=True)
             self._cache_hash = hashlib.sha256(self._cache_hash_json.encode()).hexdigest()
 
         return self._cache_hash
+
+    def aggregate_docids(self, docid_conversion_func):
+        """Apply docid_conversion_func to each docid and take the max score when collisions occur.
+
+        For example, use this to convert passage IDs to their corresponding doc IDs and use the max passage score as the doc score.
+        """
+
+        d = {}
+        for qid, docscores in self.results.items():
+            d[qid] = {}
+            for docid, score in docscores.items():
+                new_docid = docid_conversion_func(docid)
+                d[qid][new_docid] = max(score, d[qid].get(new_docid, -999999))
+
+        return TRECRun(d)

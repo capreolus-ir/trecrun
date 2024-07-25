@@ -183,3 +183,9 @@ def test_json(tmp_path):
 
     r2 = TRECRun(outfn)
     assert run.results == r2.results
+
+
+def test_aggregate_docids():
+    run = TRECRun({"q1": {"d1::1": 1, "d1::2": 2}})
+    run = run.aggregate_docids(lambda x: x.split("::")[0])
+    assert run["q1"]["d1"] == 2
