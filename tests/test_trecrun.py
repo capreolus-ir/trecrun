@@ -94,9 +94,9 @@ def test_difference(run, runmid):
 
 def test_normalize(runmid):
     rrf = runmid.normalize()
-    assert rrf["1"]["123"] == 1 / (60 + 1)
-    assert rrf["1"]["mid"] == 1 / (60 + 2)
-    assert rrf["1"]["124"] == 1 / (60 + 3)
+    assert rrf["1"]["123"] == 1 / 1
+    assert rrf["1"]["mid"] == 1 / 2
+    assert rrf["1"]["124"] == 1 / 3
     assert rrf["2"]
 
     minmax = runmid.normalize("minmax")

@@ -171,7 +171,7 @@ class TRECRun:
                 for qid in self.results
             }
             results = {
-                qid: {docid: 1 / (60 + idx + 1) for idx, (docid, old_score) in enumerate(sorted_results[qid])}
+                qid: {docid: 1 / (idx + 1) for idx, (docid, old_score) in enumerate(sorted_results[qid])}
                 for qid in sorted_results
             }
         elif method in normalization_funcs:
