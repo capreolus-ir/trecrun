@@ -299,9 +299,7 @@ class TRECRun:
         try:
             import ir_measures
         except ImportError:
-            raise ImportError(
-                "ir-measures is required to use evaluate(); install it with: pip install trecrun[eval]"
-            ) from None
+            raise ImportError("ir-measures is required to use evaluate(); install it with: pip install trecrun[eval]") from None
 
         metrics = [ir_measures.parse_measure(metric) if isinstance(metric, str) else metric for metric in metrics]
 
