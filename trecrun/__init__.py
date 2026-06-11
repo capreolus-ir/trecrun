@@ -1,13 +1,9 @@
 import hashlib
 import json
 import operator
+import statistics
 
-import ir_measures
-import numpy as np
-import sklearn.preprocessing
-import smart_open
-
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 DEFAULT_METRICS = [
     "P@1",
@@ -27,6 +23,39 @@ DEFAULT_METRICS = [
     "RR",
 ]
 
+_COMPRESSED_EXTENSIONS = (".bz2", ".gz", ".xz", ".zst")
+
+
+def _open_run_file(path):
+    """Open a run file, using smart_open (if installed) to support compressed and remote paths"""
+
+    try:
+        from smart_open import open as smart_open_open
+
+        return smart_open_open(path)
+    except ImportError:
+        path_str = str(path)
+        if "://" in path_str or path_str.endswith(_COMPRESSED_EXTENSIONS):
+            raise ImportError(
+                "smart_open is required to open compressed or remote run files; install it with: pip install smart_open"
+            ) from None
+
+        return open(path, "rt", encoding="utf-8")
+
+
+def _minmax_scale(scores):
+    mn, mx = min(scores), max(scores)
+    if mx == mn:
+        return [0.0] * len(scores)
+    return [(score - mn) / (mx - mn) for score in scores]
+
+
+def _standard_scale(scores):
+    mean, std = statistics.fmean(scores), statistics.pstdev(scores)
+    if std == 0:
+        return [0.0] * len(scores)
+    return [(score - mean) / std for score in scores]
+
 
 class TRECRun:
     def __init__(self, results):
@@ -42,15 +71,15 @@ class TRECRun:
         else:
             # is the path a JSON object?
             try:
-                with open(results, "rt", encoding="utf-8") as f:
+                with _open_run_file(results) as f:
                     self.results = json.load(f)
                     return
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, UnicodeDecodeError):
                 pass
 
             # is the path a TREC run file?
             self.results = {}
-            with smart_open.open(results) as f:
+            with _open_run_file(results) as f:
                 for line in f:
                     fields = line.strip().split()
                     if len(fields) > 0:
@@ -162,8 +191,8 @@ class TRECRun:
         """Normalize document scores"""
 
         normalization_funcs = {
-            "minmax": sklearn.preprocessing.minmax_scale,
-            "standard": sklearn.preprocessing.scale,
+            "minmax": _minmax_scale,
+            "standard": _standard_scale,
         }
 
         if method == "rr":
@@ -267,6 +296,13 @@ class TRECRun:
     ):
         """Evaluate the run using the provided qrels"""
 
+        try:
+            import ir_measures
+        except ImportError:
+            raise ImportError(
+                "ir-measures is required to use evaluate(); install it with: pip install trecrun[eval]"
+            ) from None
+
         metrics = [ir_measures.parse_measure(metric) if isinstance(metric, str) else metric for metric in metrics]
 
         d = {}
@@ -274,7 +310,7 @@ class TRECRun:
             d.setdefault(str(val.measure), {})[val.query_id] = val.value
 
         for metric in d:
-            d[metric]["mean"] = np.mean(list(d[metric].values()))
+            d[metric]["mean"] = statistics.fmean(d[metric].values())
 
         return d
 
