@@ -3,7 +3,7 @@ import json
 import operator
 import statistics
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 
 DEFAULT_METRICS = [
     "P@1",
