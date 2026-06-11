@@ -301,7 +301,20 @@ class TRECRun:
         except ImportError:
             raise ImportError("ir-measures is required to use evaluate(); install it with: pip install trecrun[eval]") from None
 
-        metrics = [ir_measures.parse_measure(metric) if isinstance(metric, str) else metric for metric in metrics]
+        def parse_measure(metric):
+            if not isinstance(metric, str):
+                return metric
+
+            try:
+                return ir_measures.parse_measure(metric)
+            except AttributeError:
+                # ir-measures <= 0.4.3 parses with ast classes that were removed in Python 3.14,
+                # so handle simple "Name@cutoff" measures ourselves
+                name, _, cutoff = metric.partition("@")
+                measure = getattr(ir_measures, name)
+                return measure @ int(cutoff) if cutoff else measure
+
+        metrics = [parse_measure(metric) for metric in metrics]
 
         d = {}
         for val in ir_measures.iter_calc(metrics, qrels, self.results):

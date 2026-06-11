@@ -180,6 +180,21 @@ def test_load_compressed_without_smart_open(monkeypatch):
         TRECRun("run.gz")
 
 
+def test_evaluate_parse_measure_fallback(run, monkeypatch):
+    # ir-measures <= 0.4.3 raises AttributeError from parse_measure on Python 3.14
+    ir_measures = pytest.importorskip("ir_measures")
+
+    def broken_parse_measure(metric):
+        raise AttributeError("module 'ast' has no attribute 'Num'")
+
+    monkeypatch.setattr(ir_measures, "parse_measure", broken_parse_measure)
+
+    qrels = {"1": {"123": 1, "124": 0}}
+    metrics = run.evaluate(qrels)
+    assert metrics["P@1"]["1"] == 1.0
+    assert metrics["RR"]["1"] == 1.0
+
+
 def test_evaluate_without_ir_measures(run, monkeypatch):
     monkeypatch.setitem(sys.modules, "ir_measures", None)
 
