@@ -1,10 +1,6 @@
 import os
 import setuptools
 
-from setuptools.command.develop import develop
-from setuptools.command.install import install
-
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -35,11 +31,15 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/capreolus-ir/trecrun",
     packages=setuptools.find_packages(),
-    install_requires=["ir-measures", "numpy", "scikit-learn", "smart_open"],
+    install_requires=[],
+    extras_require={
+        "eval": ["ir-measures"],
+        "all": ["ir-measures", "smart_open"],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     include_package_data=True,
 )

@@ -1,4 +1,5 @@
+# optional dependencies; the core library has no required dependencies.
+# ir-measures is required by evaluate(), and smart_open enables loading
+# compressed or remote run files. both are needed to run the full test suite.
 ir-measures
-numpy
-scikit-learn
 smart_open

@@ -1,3 +1,6 @@
+import gzip
+import sys
+
 import pytest
 
 from trecrun import TRECRun
@@ -115,11 +118,95 @@ def test_normalize(runmid):
     assert standard["2"]
 
 
+def test_normalize_constant_scores():
+    constant = TRECRun({"1": {"123": 5, "124": 5}})
+
+    minmax = constant.normalize("minmax")
+    assert minmax["1"] == {"123": 0.0, "124": 0.0}
+
+    standard = constant.normalize("standard")
+    assert standard["1"] == {"123": 0.0, "124": 0.0}
+
+
+def test_normalize_unknown_method(run):
+    with pytest.raises(ValueError):
+        run.normalize("invalid")
+
+
+def test_arithmetic_neg_rsub(run, rundict):
+    neg = -run
+    assert neg["1"]["123"] == -10
+
+    rsub = 5 - run
+    assert rsub["1"]["123"] == -5
+    assert rsub["2"]["125"] == -4
+
+
+def test_arithmetic_mismatched_runs(run, runmid):
+    with pytest.raises(ValueError):
+        runmid + run
+
+
+def test_load_empty_file(tmp_path):
+    emptyfn = tmp_path / "empty_run"
+    emptyfn.write_text("")
+
+    with pytest.raises(IOError):
+        TRECRun(emptyfn)
+
+
+def test_load_compressed(tmp_path, rundict):
+    pytest.importorskip("smart_open")
+
+    runfn = tmp_path / "run.gz"
+    with gzip.open(runfn, "wt") as outf:
+        outf.write("1 Q0 123 1 10\n1 Q0 124 2 9\n2 Q0 125 1 9\n")
+
+    run = TRECRun(str(runfn))
+    assert run.results == rundict
+
+
+def test_load_without_smart_open(runfn, rundict, monkeypatch):
+    monkeypatch.setitem(sys.modules, "smart_open", None)
+
+    run = TRECRun(runfn)
+    assert run.results == rundict
+
+
+def test_load_compressed_without_smart_open(monkeypatch):
+    monkeypatch.setitem(sys.modules, "smart_open", None)
+
+    with pytest.raises(ImportError, match="smart_open"):
+        TRECRun("run.gz")
+
+
+def test_evaluate_parse_measure_fallback(run, monkeypatch):
+    # ir-measures <= 0.4.3 raises AttributeError from parse_measure on Python 3.14
+    ir_measures = pytest.importorskip("ir_measures")
+
+    def broken_parse_measure(metric):
+        raise AttributeError("module 'ast' has no attribute 'Num'")
+
+    monkeypatch.setattr(ir_measures, "parse_measure", broken_parse_measure)
+
+    qrels = {"1": {"123": 1, "124": 0}}
+    metrics = run.evaluate(qrels)
+    assert metrics["P@1"]["1"] == 1.0
+    assert metrics["RR"]["1"] == 1.0
+
+
+def test_evaluate_without_ir_measures(run, monkeypatch):
+    monkeypatch.setitem(sys.modules, "ir_measures", None)
+
+    with pytest.raises(ImportError, match="ir-measures"):
+        run.evaluate({"1": {"123": 1}})
+
+
 def test_remove_unjudged_documents(run, rundict):
     # return {"1": {"123": 10, "124": 9}, "2": {"125": 9}}
     qrels = {"1": {"123": 1, "124": 0}}
     new = run.remove_unjudged_documents(qrels)
-    new.qids() == {"1"}
+    assert new.qids() == {"1"}
 
     for docid, score in new["1"].items():
         assert score == rundict["1"][docid]
